@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --text: #111;
+      --card: #ffffff;
+      --input: #ffffff;
+      --accent: #4caf50;
+      --low: #dfffe0;
+      --medium: #fff4cc;
+      --high: #ffe0e0;
+    }
+
+    body.dark {
+      --bg: #121212;
+      --text: #f5f5f5;
+      --card: #1e1e1e;
+      --input: #2a2a2a;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s ease;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 2rem;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    #theme-toggle {
+      font-size: 1.2rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    form input,
+    form select,
+    form button {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: var(--input);
+      color: var(--text);
+    }
+
+    form input[type="text"],
+    form input[type="date"],
+    form select {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    form button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    form button:hover {
+      background-color: #388e3c;
+    }
+
+    #search {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: var(--input);
+      color: var(--text);
+    }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters button {
+      background: none;
+      border: 1px solid #aaa;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .filters button.active {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+    }
+
+    #task-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .task {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      background: var(--input);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
+    }
+
+    .task:hover {
+      transform: scale(1.01);
+    }
+
+    .task.completed span {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    .task-meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .priority-low {
+      background: var(--low);
+      color: green;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .priority-medium {
+      background: var(--medium);
+      color: orange;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .priority-high {
+      background: var(--high);
+      color: red;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .task button {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      margin-left: 0.5rem;
+      cursor: pointer;
+    }
+
+    #progress-container {
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 12px;
+      margin-top: 1rem;
+    }
+
+    #progress-bar {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <h1>Task Manager</h1>
+      <button id="theme-toggle">🌙</button>
+    </div>
+
+    <form id="task-form">
+      <input type="text" id="task-input" placeholder="Enter a new task..." required />
+      <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+      <input type="date" id="start-date" />
+      <input type="date" id="due-date" />
+      <button type="submit">Add Task</button>
+    </form>
+
+    <input type="text" id="search" placeholder="Search tasks..." />
+
+    <div class="filters">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="active">Active</button>
+      <button data-filter="completed">Completed</button>
+    </div>
+
+    <ul id="task-list"></ul>
+    <div id="progress-container"><div id="progress-bar"></div></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('task-form');
+    const input = document.getElementById('task-input');
+    const priorityInput = document.getElementById('priority');
+    const startDateInput = document.getElementById('start-date');
+    const dueDateInput = document.getElementById('due-date');
+    const searchInput = document.getElementById('search');
+    const list = document.getElementById('task-list');
+    const filterBtns = document.querySelectorAll('.filters button');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    let theme = localStorage.getItem('theme') || 'light';
+
+    if (theme === 'dark') {
+      document.body.classList.add('dark');
+      themeToggle.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      themeToggle.textContent = isDark ? '☀️' : '🌙';
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      const priority = priorityInput.value;
+      const startDate = startDateInput.value;
+      const dueDate = dueDateInput.value;
+
+      if (!text) {
+        alert("Task name is required.");
+        return;
+      }
+
+      if (startDate && dueDate && new Date(startDate) > new Date(dueDate)) {
+        alert("Start date cannot be after the due date.");
+        return;
+      }
+
+      const task = {
+        id: Date.now(),
+        text,
+        completed: false,
+        priority,
+        startDate,
+        dueDate
+      };
+
+      tasks.push(task);
+      input.value = '';
+      startDateInput.value = '';
+      dueDateInput.value = '';
+      saveAndRender();
+    });
+
+    function renderTasks(filter = 'all') {
+      const searchQuery = searchInput.value.toLowerCase();
+      list.innerHTML = '';
+
+      const filtered = tasks.filter(task =>
+        (filter === 'all' ? true :
+         filter === 'completed' ? task.completed :
+         !task.completed) &&
+        task.text.toLowerCase().includes(searchQuery)
+      );
+
+      filtered.forEach(task => {
+        const li = document.createElement('li');
+        li.className = `task ${task.completed ? 'completed' : ''}`;
+        li.innerHTML = `
+          <div>
+            <span ondblclick="editTask(${task.id})">${task.text}</span>
+            <div class="task-meta">
+              <span class="priority-${task.priority}">${task.priority.toUpperCase()}</span>
+              ${task.startDate ? ` | Start: ${task.startDate}` : ''}
+              ${task.dueDate ? ` | Due: ${task.dueDate}` : ''}
+            </div>
+          </div>
+          <div>
+            <button onclick="toggleTask(${task.id})">✅</button>
+            <button onclick="editTask(${task.id})">✏️</button>
+            <button onclick="deleteTask(${task.id})">❌</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+
+      updateProgress();
+    }
+
+    function toggleTask(id) {
+      tasks = tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      );
+      saveAndRender();
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(task => task.id !== id);
+      saveAndRender();
+    }
+
+    function editTask(id) {
+      const task = tasks.find(t => t.id === id);
+      const newText = prompt('Edit your task:', task.text);
+      if (newText && newText.trim()) {
+        task.text = newText.trim();
+        saveAndRender();
+      }
+    }
+
+    function updateProgress() {
+      const total = tasks.length;
+      const done = tasks.filter(t => t.completed).length;
+      const percent = total ? (done / total) * 100 : 0;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+    }
+
+    function saveAndRender() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      renderTasks(document.querySelector('.filters button.active')?.dataset.filter || 'all');
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelector('.filters button.active')?.classList.remove('active');
+        btn.classList.add('active');
+        renderTasks(btn.dataset.filter);
+      });
+    });
+
+    searchInput.addEventListener('input', saveAndRender);
+
+    saveAndRender();
+  </script>
+</body>
+</html>
